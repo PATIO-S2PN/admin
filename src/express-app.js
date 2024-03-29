@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const { admin } = require("./api");
+const { chef } = require("./api"); 
 const path = require("path");
 const fs = require('fs'); 
 const { CreateChannel } = require("./utils");
@@ -24,4 +25,5 @@ module.exports = async (app) => {
   const channel = await CreateChannel();
 
   admin(app, channel);
+  chef(app, channel);
 };
