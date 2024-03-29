@@ -2,20 +2,49 @@ const AdminService = require("../services/admin-service");
 const UserAuth = require("./middlewares/auth");
 const { PublishMessage } = require("../utils");
 const { SHOPPING_SERVICE } = require("../config");
+const multer = require('multer');
 const User = require('../database/models/Admin'); // Make sure this path is correct
 
 module.exports = (app, channel) => {
   const service = new AdminService();
 
-  app.post("/signup", async (req, res, next) => {
-    try {
-      const { email, password, phone, role } = req.body;
-      const data = await service.SignUp({ email, password, phone, role });
-      return res.json(data);
-    } catch (error) {
-      next(error);
+  // Adjust multer configuration
+  const imageStorage = multer.diskStorage({
+    destination: function(req, file, cb){
+        cb(null, 'images')
+    },
+    filename: function(req, file, cb){
+        const date = new Date().toISOString().replace(/:/g, '-');
+        cb(null, date + '_' + file.originalname);
     }
-  });
+  })
+
+  const upload = multer({ storage: imageStorage });
+
+
+  app.post("/signup", upload.single('profilePicture'), async (req, res, next) => {
+    try {
+        const { email, password, phone, role } = req.body;
+        const profilePicture = req.file ? req.file.path : "default.jpg";
+        const data = await service.SignUp({ email, password, phone, role, profilePicture });
+        return res.json(data);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+  // app.post("/signup",images, async (req, res, next) => {
+  //   try {
+  //     const { email, password, phone, role } = req.body;
+  //     const defaultPhoto = "default.jpg";
+  //     const images = req.files.length > 0 ? req.files.map(file => file.path) : [defaultPhoto];
+  //     const data = await service.SignUp({ email, password, phone, role, images });
+  //     return res.json(data);
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // });
 
   app.post("/login", async (req, res, next) => {
     try {
@@ -43,6 +72,19 @@ module.exports = (app, channel) => {
     }
   });
 
+  app.put("/profile", UserAuth, upload.single('profilePicture'), async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        const updateFields = req.body;
+        const profilePicture = req.file.path; // Assuming a file is always uploaded, otherwise add a check
+        const data = await service.UpdateProfile(userId, updateFields, profilePicture);
+        return res.json(data);
+    } catch (error) {
+        next(error);
+    }
+});
+
+
   app.get("/profile", UserAuth, async (req, res, next) => {
     try {
       const { _id } = req.user;
@@ -53,16 +95,17 @@ module.exports = (app, channel) => {
     }
   });
 
-  app.put("/profile", UserAuth, async (req, res, next) => {
-    try {
-      const userId = req.user._id; // Ensure your UserAuth middleware correctly identifies user ID
-      const updateFields = req.body;
-      const data = await service.UpdateProfile(userId, updateFields);
-      return res.json(data);
-    } catch (error) {
-      next(error);
-    }
-  });
+  // app.put("/profile", UserAuth,images, async (req, res, next) => {
+  //   try {
+  //     const userId = req.user._id; // Ensure your UserAuth middleware correctly identifies user ID
+  //     const updateFields = req.body;
+  //     const images = req.files.map(file => file.path);
+  //     const data = await service.UpdateProfile(userId, updateFields, images);
+  //     return res.json(data);
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // });
   
   
 

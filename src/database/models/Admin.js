@@ -18,6 +18,8 @@ const AdminSchema = new Schema(
     otp: {type: Number},
     otp_expiry: {type: Date},
     role: { type: String, default: "staff" },
+    profilePicture: { type: String },
+
   },
   {
     toJSON: {

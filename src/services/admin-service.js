@@ -75,7 +75,7 @@ class AdminService {
   // }
 
   async SignUp(userInputs) {
-    const { email, password, phone, role } = userInputs;
+    const { email, password, phone, role, profilePicture } = userInputs;
 
     // Check if a user with the same email already exists
     const existingUser = await this.repository.FindAdmin({ email });
@@ -100,6 +100,7 @@ class AdminService {
       verifyToken,
       verifyTokenExpiry, // Token expiry set to 1 hour
       role,
+      profilePicture ,
     });
 
     // Send verification email
@@ -117,43 +118,50 @@ class AdminService {
     return { message: "Signup successful, please verify your email." };
   }
 
-
-  async AddNewAddress(_id, userInputs) {
-    const { street, postalCode, city, country } = userInputs;
-
-    return this.repository.CreateAddress({
-      _id,
-      street,
-      postalCode,
-      city,
-      country,
-    });
-  }
-
   async GetProfile(id) {
     return this.repository.FindAdminById({ id });
   }
 
-  async UpdateProfile(userId, updateFields) {
-    // Specify which fields can be updated to prevent updating of sensitive fields
+  async UpdateProfile(userId, updateFields, profilePicture) {
     const { firstName, lastName, phone } = updateFields;
-  
-    // Prepare the update object, excluding any fields not allowed or not provided
+
     const updates = {};
     if (firstName !== undefined) updates.firstName = firstName;
     if (lastName !== undefined) updates.lastName = lastName;
     if (phone !== undefined) updates.phone = phone;
+    if (profilePicture !== undefined) updates.profilePicture = profilePicture;
     
-    // Update the Admin in the database
     const updatedAdmin = await this.repository.UpdateAdminById(userId, updates);
   
     if (!updatedAdmin) {
-      throw new NotFoundError("User not found.");
+        throw new NotFoundError("User not found.");
     }
   
-    // Assuming FormateData formats the output
     return FormateData(updatedAdmin);
-  }
+}
+
+
+  // async UpdateProfile(userId, updateFields, images) {
+  //   // Specify which fields can be updated to prevent updating of sensitive fields
+  //   const { firstName, lastName, phone } = updateFields;
+  
+  //   // Prepare the update object, excluding any fields not allowed or not provided
+  //   const updates = {};
+  //   if (firstName !== undefined) updates.firstName = firstName;
+  //   if (lastName !== undefined) updates.lastName = lastName;
+  //   if (phone !== undefined) updates.phone = phone;
+  //   if (images !== undefined) updates.images = images;
+    
+  //   // Update the Admin in the database
+  //   const updatedAdmin = await this.repository.UpdateAdminById(userId, updates);
+  
+  //   if (!updatedAdmin) {
+  //     throw new NotFoundError("User not found.");
+  //   }
+  
+  //   // Assuming FormateData formats the output
+  //   return FormateData(updatedAdmin);
+  // }
   
   
 

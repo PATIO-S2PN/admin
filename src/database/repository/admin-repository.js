@@ -3,7 +3,7 @@ const { AdminModel } = require("../models");
 
 //Dealing with data base operations
 class AdminRepository {
-  async CreateAdmin({ email, password, phone, salt, verifyToken, verifyTokenExpiry, role}) {
+  async CreateAdmin({ email, password, phone, salt, verifyToken, verifyTokenExpiry, role, profilePicture }) {
     const admin = new AdminModel({
       email,
       password,
@@ -19,6 +19,7 @@ class AdminRepository {
       lastName: '',
       isVerified: false,
       role,
+      profilePicture ,
     });
 
     const adminResult = await admin.save();
