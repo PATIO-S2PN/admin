@@ -1,4 +1,4 @@
-const { CustomerRepository } = require("../database");
+const { AdminRepository } = require("../database");
 const { v4: uuidv4 } = require('uuid');
 const sendEmail = require("../utils/emailSender");
 
@@ -16,39 +16,39 @@ const {
 const { VERIFICATION_URL, RESET_URL } = require("../config");
 
 // All Business logic will be here
-class CustomerService {
+class AdminService {
   constructor() {
-    this.repository = new CustomerRepository();
+    this.repository = new AdminRepository();
   }
 
   async SignIn(userInputs) {
     const { email, password } = userInputs;
 
-    const existingCustomer = await this.repository.FindCustomer({ email });
+    const existingAdmin = await this.repository.FindAdmin({ email });
 
-    if (!existingCustomer)
+    if (!existingAdmin)
       throw new NotFoundError("user not found with provided email id!");
 
     const validPassword = await ValidatePassword(
       password,
-      existingCustomer.password,
-      existingCustomer.salt
+      existingAdmin.password,
+      existingAdmin.salt
     );
     if (!validPassword) throw new ValidationError("password does not match!");
 
     const token = await GenerateSignature({
-      email: existingCustomer.email,
-      _id: existingCustomer._id,
+      email: existingAdmin.email,
+      _id: existingAdmin._id,
     });
 
-    return { id: existingCustomer._id, token };
+    return { id: existingAdmin._id, token };
   }
 
   // async SignUp(userInputs) {
   //   const { email, password, phone } = userInputs;
 
   //   // Check if a user with the same email already exists
-  //   const existingUser = await this.repository.FindCustomer({ email });
+  //   const existingUser = await this.repository.FindAdmin({ email });
   //   if (existingUser) {
   //     throw new Error('A user with this email already exists');
   //   }
@@ -60,7 +60,7 @@ class CustomerService {
 
   //   let userPassword = await GeneratePassword(password, salt);
 
-  //   const existingCustomer = await this.repository.CreateCustomer({
+  //   const existingAdmin = await this.repository.CreateAdmin({
   //     email,
   //     password: userPassword,
   //     phone,
@@ -69,16 +69,16 @@ class CustomerService {
 
   //   const token = await GenerateSignature({
   //     email: email,
-  //     _id: existingCustomer._id,
+  //     _id: existingAdmin._id,
   //   });
-  //   return { id: existingCustomer._id, token };
+  //   return { id: existingAdmin._id, token };
   // }
 
   async SignUp(userInputs) {
-    const { email, password, phone } = userInputs;
+    const { email, password, phone, role } = userInputs;
 
     // Check if a user with the same email already exists
-    const existingUser = await this.repository.FindCustomer({ email });
+    const existingUser = await this.repository.FindAdmin({ email });
     if (existingUser) {
       throw new Error('A user with this email already exists');
     }
@@ -92,13 +92,14 @@ class CustomerService {
     const verifyTokenExpiry = Date.now() + 3600000;
 
     // Create the user with the hashed password, salt, and verification token
-    const newUser = await this.repository.CreateCustomer({
+    const newUser = await this.repository.CreateAdmin({
       email,
       password: userPassword,
       phone,
       salt,
       verifyToken,
       verifyTokenExpiry, // Token expiry set to 1 hour
+      role,
     });
 
     // Send verification email
@@ -130,7 +131,7 @@ class CustomerService {
   }
 
   async GetProfile(id) {
-    return this.repository.FindCustomerById({ id });
+    return this.repository.FindAdminById({ id });
   }
 
   async UpdateProfile(userId, updateFields) {
@@ -143,28 +144,28 @@ class CustomerService {
     if (lastName !== undefined) updates.lastName = lastName;
     if (phone !== undefined) updates.phone = phone;
     
-    // Update the customer in the database
-    const updatedCustomer = await this.repository.UpdateCustomerById(userId, updates);
+    // Update the Admin in the database
+    const updatedAdmin = await this.repository.UpdateAdminById(userId, updates);
   
-    if (!updatedCustomer) {
+    if (!updatedAdmin) {
       throw new NotFoundError("User not found.");
     }
   
     // Assuming FormateData formats the output
-    return FormateData(updatedCustomer);
+    return FormateData(updatedAdmin);
   }
   
   
 
   async ChangePassword(userId, currentPassword, newPassword) {
     // Find the user by ID
-    const customer = await this.repository.FindCustomerById({ id: userId });
-    if (!customer) {
+    const admin = await this.repository.FindAdminById({ id: userId });
+    if (!admin) {
       throw new NotFoundError('User not found');
     }
   
     // Validate current password
-    const validPassword = await ValidatePassword(currentPassword, customer.password, customer.salt);
+    const validPassword = await ValidatePassword(currentPassword, admin.password, admin.salt);
     if (!validPassword) {
       throw new ValidationError('Current password does not match');
     }
@@ -174,24 +175,24 @@ class CustomerService {
     const newHashedPassword = await GeneratePassword(newPassword, newSalt);
   
     // Update the user's password and salt in the database
-    await this.repository.UpdateCustomerById(customer._id, { password: newHashedPassword, salt: newSalt });
+    await this.repository.UpdateAdminById(admin._id, { password: newHashedPassword, salt: newSalt });
   
     return { message: 'Password updated successfully' };
   }
   
 
   async VerifyEmail(token) {
-    const customer = await this.repository.FindCustomerByToken({ verifyToken: token });
-    if (!customer) {
+    const admin = await this.repository.FindAdminByToken({ verifyToken: token });
+    if (!admin) {
       throw new NotFoundError('Invalid or expired token');
     }
 
-    if (customer.verifyTokenExpiry < Date.now()) {
+    if (admin.verifyTokenExpiry < Date.now()) {
       throw new ValidationError('Token has expired');
     }
 
     // Update the user's isVerified field to true and remove the verification token
-    await this.repository.UpdateCustomerById(customer._id, {
+    await this.repository.UpdateAdminById(admin._id, {
       isVerified: true,
       verifyToken: null,
       verifyTokenExpiry: null,
@@ -202,12 +203,12 @@ class CustomerService {
 
   async ResetPassword(token, password) {
     // Find a user with the provided reset token
-    const customer = await this.repository.FindCustomerByResetToken({ resetToken: token });
-    if (!customer) {
+    const admin = await this.repository.FindAdminByResetToken({ resetToken: token });
+    if (!admin) {
       throw new NotFoundError('Invalid or expired token');
     }
 
-    if (customer.resetTokenExpiry < Date.now()) {
+    if (admin.resetTokenExpiry < Date.now()) {
       throw new ValidationError('Token has expired');
     }
 
@@ -216,7 +217,7 @@ class CustomerService {
     const hashedPassword = await GeneratePassword(password, salt);
 
     // Update the user's password, salt, and remove the reset token
-    await this.repository.UpdateCustomerById(customer._id, {
+    await this.repository.UpdateAdminById(admin._id, {
       password: hashedPassword,
       salt: salt,
       resetToken: null,
@@ -228,15 +229,15 @@ class CustomerService {
   
   async ResetPasswordLink(email) {
     // Check if a user with the provided email exists
-    const customer = await this.repository.FindCustomer({ email });
-    if (!customer) {
+    const admin = await this.repository.FindAdmin({ email });
+    if (!admin) {
       throw new NotFoundError('No user found with this email.');
     }
     const resetToken = uuidv4();
     const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
 
     // Assuming you have a method in your repository to update the customer
-    await this.repository.UpdateCustomerById(customer._id, {
+    await this.repository.UpdateAdminById(admin._id, {
       resetToken: resetToken,
       resetTokenExpiry: resetTokenExpiry,
     });
@@ -244,7 +245,7 @@ class CustomerService {
     const resetUrl = RESET_URL + resetToken;
     console.log(resetUrl);
     await sendEmail({
-      to: customer.email,
+      to: admin.email,
       subject: 'Password Reset',
       html: `Please click this link to reset your password: <a href="${resetUrl}">${resetUrl}</a>`,
     });
@@ -255,7 +256,7 @@ class CustomerService {
 
 
   async DeleteProfile(userId) {
-    const data = await this.repository.DeleteCustomerById(userId);
+    const data = await this.repository.DeleteAdminById(userId);
     const payload = {
       event: "DELETE_PROFILE",
       data: { userId },
@@ -264,4 +265,4 @@ class CustomerService {
   }
 }
 
-module.exports = CustomerService;
+module.exports = AdminService;

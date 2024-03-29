@@ -1,16 +1,16 @@
-const CustomerService = require("../services/customer-service");
+const AdminService = require("../services/admin-service");
 const UserAuth = require("./middlewares/auth");
 const { PublishMessage } = require("../utils");
 const { SHOPPING_SERVICE } = require("../config");
-const User = require('../database/models/Customer'); // Make sure this path is correct
+const User = require('../database/models/Admin'); // Make sure this path is correct
 
 module.exports = (app, channel) => {
-  const service = new CustomerService();
+  const service = new AdminService();
 
   app.post("/signup", async (req, res, next) => {
     try {
-      const { email, password, phone } = req.body;
-      const data = await service.SignUp({ email, password, phone });
+      const { email, password, phone, role } = req.body;
+      const data = await service.SignUp({ email, password, phone, role });
       return res.json(data);
     } catch (error) {
       next(error);
@@ -127,6 +127,6 @@ app.post('/reset-password', async (req, res, next) => {
 });
 
   app.get("/whoami", (req, res, next) => {
-    return res.status(200).json({ msg: "/customer : I am Customer Service" });
+    return res.status(200).json({ msg: "/admin : I am Admin Service" });
   });
 };

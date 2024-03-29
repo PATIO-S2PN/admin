@@ -1,8 +1,8 @@
-const CustomerService = require("../services/customer-service");
+const AdminService = require("../services/admin-service");
 
 module.exports = (app) => {
     
-    const service = new CustomerService();
+    const service = new AdminService();
     app.use('/app-events',async (req,res,next) => {
 
         const { payload } = req.body;

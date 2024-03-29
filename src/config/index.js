@@ -34,6 +34,6 @@ module.exports = {
   MSG_QUEUE_URL: process.env.MSG_QUEUE_URL,
   VERIFICATION_URL: process.env.VERIFICATION_URL,
   RESET_URL: process.env.RESET_PASSWORD_URL,
-  CUSTOMER_SERVICE: "customer_service",
+  ADMIN_SERVICE: "admin_service",
   SHOPPING_SERVICE: "shopping_service",
 };

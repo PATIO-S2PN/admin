@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const CustomerSchema = new Schema(
+const AdminSchema = new Schema(
   {
     email: {type: String, required: true},
     password:  {type: String, required: true},
@@ -17,7 +17,7 @@ const CustomerSchema = new Schema(
     resetTokenExpiry: { type: Date },
     otp: {type: Number},
     otp_expiry: {type: Date},
-    address: [{ type: Schema.Types.ObjectId, ref: "address", require: true }],
+    role: { type: String, default: "staff" },
   },
   {
     toJSON: {
@@ -33,4 +33,4 @@ const CustomerSchema = new Schema(
   }
 );
 
-module.exports = mongoose.model("customer", CustomerSchema);
+module.exports = mongoose.model("admin", AdminSchema);

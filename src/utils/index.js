@@ -5,8 +5,8 @@ const amqplib = require("amqplib");
 const {
   APP_SECRET,
   EXCHANGE_NAME,
-  CUSTOMER_SERVICE,
   MSG_QUEUE_URL,
+  ADMIN_SERVICE,
 } = require("../config");
 
 //Utility functions
@@ -70,7 +70,7 @@ module.exports.SubscribeMessage = async (channel, service) => {
   const q = await channel.assertQueue("", { exclusive: true });
   console.log(` Waiting for messages in queue: ${q.queue}`);
 
-  channel.bindQueue(q.queue, EXCHANGE_NAME, CUSTOMER_SERVICE);
+  channel.bindQueue(q.queue, EXCHANGE_NAME, ADMIN_SERVICE);
 
   channel.consume(
     q.queue,
