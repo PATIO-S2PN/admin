@@ -244,7 +244,7 @@ class AdminService {
     const resetToken = uuidv4();
     const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
 
-    // Assuming you have a method in your repository to update the customer
+    // Assuming you have a method in your repository to update the admin
     await this.repository.UpdateAdminById(admin._id, {
       resetToken: resetToken,
       resetTokenExpiry: resetTokenExpiry,
