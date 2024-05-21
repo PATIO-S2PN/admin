@@ -91,6 +91,10 @@ class AdminService {
     const verifyToken = uuidv4(); // Make sure you have uuid installed and imported
     const verifyTokenExpiry = Date.now() + 3600000;
 
+    if (profilePicture === undefined) {
+      profilePicture = '/admin/images/default.png';
+    }
+
     // Create the user with the hashed password, salt, and verification token
     const newUser = await this.repository.CreateAdmin({
       email,
