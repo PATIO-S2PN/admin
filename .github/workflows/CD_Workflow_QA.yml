@@ -36,5 +36,5 @@ jobs:
           application_name: s2pn_admin
           environment_name: S2pnadmin-env
           version_label: "ver-${{ github.sha }}"
-          region: eu-central-1
+          region: us-east-1
           deployment_package: deploy.zip  
