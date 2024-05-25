@@ -1,0 +1,62 @@
+name: Deploy on QA
+
+on:
+  push:
+    branches: [ "qa" ]
+  workflow_dispatch:
+
+jobs:
+  deploy_on_qa:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          
+      - name: Cache node modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Lint and Test
+        run: |
+          npm run lint
+          npm test
+
+      - name: Create admin Env file
+        run: |
+          touch .env
+          echo APP_SECRET=${{ secrets.QA_APP_SECRET }} >> .env
+          echo MONGODB_URI=${{ secrets.QA_ADMIN_DB_URL }} >> .env
+          echo MSG_QUEUE_URL=${{ secrets.QA_MSG_QUEUE_URL }} >> .env
+          echo EXCHANGE_NAME=ONLINE_STORE >> .env
+          echo PORT=8001 >> .env
+          cat .env
+          
+      - name: Generate deployment package
+        run: |
+          zip -r deploy.zip . -x '*.git'
+      
+      - name: Deploy on Elastic Beanstalk QA Env
+        uses: einaregilsson/beanstalk-deploy@v20
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: s2pn_admin
+          environment_name: S2pnadmin-env
+          version_label: "ver-${{ github.sha }}"
+          region: eu-central-1
+          deployment_package: deploy.zip
+        continue-on-error: false
