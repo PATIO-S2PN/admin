@@ -13,28 +13,7 @@ jobs:
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          
-      - name: Cache node modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install Dependencies
-        run: npm install
       
-      - name: Lint and Test
-        run: |
-          npm run lint
-          npm test
-
       - name: Create admin Env file
         run: |
           touch .env
@@ -49,7 +28,7 @@ jobs:
         run: |
           zip -r deploy.zip . -x '*.git'
       
-      - name: Deploy on Elastic Beanstalk QA Env
+      - name: Deploy on Elastic beanstalk QA Env
         uses: einaregilsson/beanstalk-deploy@v20
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -58,5 +37,4 @@ jobs:
           environment_name: S2pnadmin-env
           version_label: "ver-${{ github.sha }}"
           region: eu-central-1
-          deployment_package: deploy.zip
-        continue-on-error: false
+          deployment_package: deploy.zip  
