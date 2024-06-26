@@ -8,7 +8,7 @@ build/
 dist/
 
 # Ignore environment-specific files
-.env
+# .env
 .env.dev
 .env.local
 .env.*.local
