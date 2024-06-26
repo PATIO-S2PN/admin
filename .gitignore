@@ -8,7 +8,7 @@ build/
 dist/
 
 # Ignore environment-specific files
-.env
+# .env
 .env.dev
 .env.local
 .env.*.local
@@ -19,10 +19,6 @@ logs/
 # Ignore editor-specific files
 .vscode/
 .idea/
-
-# Ignore package lock files
-package-lock.json
-yarn.lock
 
 # Ignore test coverage reports
 coverage/
