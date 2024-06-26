@@ -1,5 +1,6 @@
 # Ignore node_modules directory
 node_modules/
+package-lock.json
 
 images/
 
@@ -8,7 +9,7 @@ build/
 dist/
 
 # Ignore environment-specific files
-# .env
+.env
 .env.dev
 .env.local
 .env.*.local
